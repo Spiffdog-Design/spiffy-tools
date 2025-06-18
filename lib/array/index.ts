@@ -1,4 +1,4 @@
-export const flattenArray = (arr: any[]): any[] => Array.from(new Set(arr));
+export const flattenArray = (arr: any[] | any | null | undefined): any[] => Array.from(new Set(arr));
 
 export const flattenKeys = (obj: any) => {
   return Object.keys(obj).reduce<any[]>((acc: any[], key) => {
@@ -14,7 +14,7 @@ export const flattenKeys = (obj: any) => {
   }, []);
 };
 
-export const flattenValues = (obj: any): any[] => {
+export const flattenValues = (obj: any | null | undefined): any[] => {
   return Object.keys(obj).reduce<any[]>((acc: any[], key: string) => {
     const val = obj[key];
 
@@ -28,4 +28,4 @@ export const flattenValues = (obj: any): any[] => {
   }, []);
 };
 
-export const hasEntries = (arr: any[]) => arr != null && Array.isArray(arr) && arr.length > 0;
+export const hasEntries = (arr: any[] | any | null | undefined) => arr != null && Array.isArray(arr) && arr.length > 0;

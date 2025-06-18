@@ -7,14 +7,18 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   build: {
     copyPublicDir: false, // Disables copying the public directory to the output directory.
+    target: 'esnext',
     lib: {
       entry: './lib/index.ts', // Specifies the entry point for building the library.
-      fileName: (format) => (format === 'es' ? 'index.js' : `index.${format}.js`), // Generates the output file name based on the format.
-      formats: ['cjs', 'es'], // Specifies the output formats (CommonJS and ES modules).
+      fileName: (format, entryName) => `${entryName}.js`, // Generates the output file name based on the format.
+      formats: ['es'], // Specifies the output formats (ES modules).
     },
-    // rollupOptions: {
-    //   external: [...Object.keys(peerDependencies)], // Defines external dependencies for Rollup bundling.
-    // },
+    rollupOptions: {
+      // external: [...Object.keys(peerDependencies)], // Defines external dependencies for Rollup bundling.
+      output: {
+        preserveModules: true,
+      },
+    },
     sourcemap: true, // Generates source maps for debugging.
     emptyOutDir: true, // Clears the output directory before building.
   },
