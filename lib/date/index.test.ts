@@ -1,0 +1,339 @@
+import { describe, it, expect, vi } from 'vitest';
+import { dateFormatOption, format, getLocale, getMonthList, isDateOrTemporal, parse, timeAgo } from '../date'; // Adjust the import path as necessary
+import { Temporal } from '@js-temporal/polyfill';
+
+const testDateString = '2023-10-05T00:00:00Z[UTC]';
+const getFormattedString = (date: string, locale = 'en-US', options: Intl.DateTimeFormatOptions = dateFormatOption) =>
+  Temporal.Instant.from(date).toLocaleString(locale, options);
+
+describe('format', () => {
+  it('should format a Date object correctly', () => {
+    const expected = getFormattedString(testDateString);
+    const date = new Date(Date.UTC(2023, 9, 5));
+    const formattedDate = format(date, 'en-US');
+    expect(formattedDate).toBe(expected);
+  });
+  it('should format a date string correctly', () => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    };
+    const expected = getFormattedString(testDateString, 'en-GB', options);
+    const date = '2023-10-05T00:00:00Z';
+    const formattedDate = format(date, 'en-GB', options);
+    expect(formattedDate).toBe(expected);
+  });
+  it('should format a Temporal.PlainDate correctly', () => {
+    const temporal = Temporal.PlainDate.from('2023-10-05');
+    const formattedDate = format(temporal, 'en-US');
+    const expectedDate = new Date(temporal.year, temporal.month - 1, temporal.day);
+    expect(formattedDate).toBe(expectedDate.toLocaleString('en-US', dateFormatOption));
+  });
+  it('should format a Temporal.Instant correctly', () => {
+    const expected = getFormattedString(testDateString);
+    const temporalInstant = Temporal.Instant.from('2023-10-05T00:00:00Z'); // Use UTC instant
+    const formattedDate = format(temporalInstant, 'en-US');
+    expect(formattedDate).toBe(expected);
+  });
+  it('should format a number timestamp correctly', () => {
+    const expected = getFormattedString(testDateString);
+    const timestamp = Date.UTC(2023, 9, 5); // Use UTC timestamp
+    const formattedDate = format(timestamp, 'en-US');
+    expect(formattedDate).toBe(expected);
+  });
+  it('should use default locale and options if none are provided', () => {
+    const expected = getFormattedString(testDateString);
+    const date = new Date(Date.UTC(2023, 9, 5)); // Use UTC date
+    const formattedDate = format(date);
+    expect(formattedDate).toBe(expected);
+  });
+});
+
+describe('getLocale', () => {
+  it('should return the first language from navigator.languages if available', () => {
+    const mockLanguages = ['en-US', 'fr-FR'];
+    vi.stubGlobal('navigator', { languages: mockLanguages });
+    const locale = getLocale();
+    expect(locale).toBe('en-US');
+  });
+
+  it('should return navigator.language if navigator.languages is not available', () => {
+    const mockLanguage = 'fr-FR';
+    vi.stubGlobal('navigator', { language: mockLanguage });
+    const locale = getLocale();
+    expect(locale).toBe('fr-FR');
+  });
+
+  it('should return navigator.userLanguage if neither navigator.languages nor navigator.language is available', () => {
+    const mockUserLanguage = 'de-DE';
+    vi.stubGlobal('navigator', { userLanguage: mockUserLanguage });
+    const locale = getLocale();
+    expect(locale).toBe('de-DE');
+  });
+
+  it('should return null if navigator is not available', () => {
+    vi.stubGlobal('navigator', null);
+    const locale = getLocale();
+    expect(locale).toBeNull();
+  });
+
+  it('should return undefined if no language properties are available', () => {
+    vi.stubGlobal('navigator', {});
+    const locale = getLocale();
+    expect(locale).toBeUndefined();
+  });
+});
+
+describe('getMonthList', () => {
+  it('should return long month names in English by default', () => {
+    const months = getMonthList();
+    expect(months).toEqual([
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ]);
+  });
+
+  it('should return short month names in English', () => {
+    const months = getMonthList('en-US', 'short');
+    expect(months).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
+  });
+
+  it('should return numeric month names in English', () => {
+    const months = getMonthList('en-US', 'numeric');
+    expect(months).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
+  });
+
+  it('should return long month names in French', () => {
+    const months = getMonthList('fr-FR', 'long');
+    expect(months).toEqual([
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ]);
+  });
+
+  it('should return narrow month names in English', () => {
+    const months = getMonthList('en-US', 'narrow');
+    expect(months).toEqual(['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']);
+  });
+
+  it('should return 2-digit month names in English', () => {
+    const months = getMonthList('en-US', '2-digit');
+    expect(months).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
+  });
+});
+
+describe('isDate', () => {
+  it('should return true for a Date object', () => {
+    const date = new Date();
+    expect(isDateOrTemporal(date)).toBe(true);
+  });
+
+  it('should return true for a Temporal.PlainDate', () => {
+    const temporalDate = Temporal.PlainDate.from('2023-10-05');
+    expect(isDateOrTemporal(temporalDate)).toBe(true);
+  });
+
+  it('should return true for a Temporal.Instant', () => {
+    const temporalInstant = Temporal.Instant.from('2023-10-05T00:00:00Z');
+    expect(isDateOrTemporal(temporalInstant)).toBe(true);
+  });
+
+  it('should return true for a Temporal.PlainDateTime', () => {
+    const temporalDateTime = Temporal.PlainDateTime.from('2023-10-05T12:34:56');
+    expect(isDateOrTemporal(temporalDateTime)).toBe(true);
+  });
+
+  it('should return true for a Temporal.PlainTime', () => {
+    const temporalTime = Temporal.PlainTime.from('12:34:56');
+    expect(isDateOrTemporal(temporalTime)).toBe(true);
+  });
+
+  it('should return true for a Temporal.PlainYearMonth', () => {
+    const temporalYearMonth = Temporal.PlainYearMonth.from('2023-10');
+    expect(isDateOrTemporal(temporalYearMonth)).toBe(true);
+  });
+
+  it('should return true for a Temporal.PlainMonthDay', () => {
+    const temporalMonthDay = Temporal.PlainMonthDay.from('10-05');
+    expect(isDateOrTemporal(temporalMonthDay)).toBe(true);
+  });
+
+  it('should return true for a Temporal.ZonedDateTime', () => {
+    const temporalZonedDateTime = Temporal.ZonedDateTime.from('2023-10-05T12:34:56+01:00[Europe/London]');
+    expect(isDateOrTemporal(temporalZonedDateTime)).toBe(true);
+  });
+
+  it('should return true for a Temporal.Duration', () => {
+    const temporalDuration = Temporal.Duration.from({ hours: 1, minutes: 30 });
+    expect(isDateOrTemporal(temporalDuration)).toBe(true);
+  });
+
+  it('should return false for a non-date, non-temporal value', () => {
+    const nonDateValue = '2023-10-05';
+    expect(isDateOrTemporal(nonDateValue)).toBe(false);
+  });
+
+  it('should return false for null', () => {
+    expect(isDateOrTemporal(null)).toBe(false);
+  });
+
+  it('should return false for undefined', () => {
+    expect(isDateOrTemporal(undefined)).toBe(false);
+  });
+});
+
+describe('parse', () => {
+  it('should parse a date string in the default format "YYYY/MM/DD"', () => {
+    const date = parse('2023/10/05');
+    expect(date).toEqual(new Date(2023, 9, 5)); // October is month 9 (0-indexed)
+  });
+
+  it('should parse a date string in the format "DD-MM-YYYY"', () => {
+    const date = parse('05-10-2023', 'DD-MM-YYYY');
+    expect(date).toEqual(new Date(2023, 9, 5));
+  });
+
+  it('should parse a date string with time in the format "YYYY-MM-DD HH:mm:ss"', () => {
+    const date = parse('2023-10-05 14:30:00', 'YYYY-MM-DD HH:mm:ss');
+    expect(date).toEqual(new Date(2023, 9, 5, 14, 30, 0));
+  });
+
+  it('should return null for an invalid date string', () => {
+    const date = parse('2023-13-05', 'YYYY-MM-DD'); // Invalid month
+    expect(date).toBeNull();
+  });
+
+  it('should return null for a date string that does not match the format', () => {
+    const date = parse('2023/10/05', 'DD-MM-YYYY');
+    expect(date).toBeNull();
+  });
+
+  it('should parse a date string in the format "MM/DD/YYYY"', () => {
+    const date = parse('10/05/2023', 'MM/DD/YYYY');
+    expect(date).toEqual(new Date(2023, 9, 5));
+  });
+
+  it('should parse a date string with time in the format "DD/MM/YYYY HH:mm"', () => {
+    const date = parse('05/10/2023 14:30', 'DD/MM/YYYY HH:mm');
+    expect(date).toEqual(new Date(2023, 9, 5, 14, 30));
+  });
+
+  it('should handle leading zeros in date components', () => {
+    const date = parse('2023-01-01', 'YYYY-MM-DD');
+    expect(date).toEqual(new Date(2023, 0, 1)); // January is month 0 (0-indexed)
+  });
+
+  it('should return null for an empty date string', () => {
+    const date = parse('', 'YYYY-MM-DD');
+    expect(date).toBeNull();
+  });
+
+  it('should return null for a null input', () => {
+    const date = parse(null as unknown as string, 'YYYY-MM-DD');
+    expect(date).toBeNull();
+  });
+
+  it('should return null for an undefined input', () => {
+    const date = parse(undefined as unknown as string, 'YYYY-MM-DD');
+    expect(date).toBeNull();
+  });
+});
+
+describe('timeAgo', () => {
+  it('should return "just now" for a date less than a second ago', () => {
+    const pastDate = new Date(Date.now() - 500); // 0.5 seconds ago
+    expect(timeAgo(pastDate)).toBe('just now');
+  });
+
+  it('should return "1 second ago" for a date exactly one second ago', () => {
+    const pastDate = new Date(Date.now() - 1000); // 1 second ago
+    expect(timeAgo(pastDate)).toBe('1 second ago');
+  });
+
+  it('should return "30 seconds ago" for a date 30 seconds ago', () => {
+    const pastDate = new Date(Date.now() - 30000); // 30 seconds ago
+    expect(timeAgo(pastDate)).toBe('30 seconds ago');
+  });
+
+  it('should return "1 minute ago" for a date exactly one minute ago', () => {
+    const pastDate = new Date(Date.now() - 60000); // 1 minute ago
+    expect(timeAgo(pastDate)).toBe('1 minute ago');
+  });
+
+  it('should return "5 minutes ago" for a date 5 minutes ago', () => {
+    const pastDate = new Date(Date.now() - 300000); // 5 minutes ago
+    expect(timeAgo(pastDate)).toBe('5 minutes ago');
+  });
+
+  it('should return "1 hour ago" for a date exactly one hour ago', () => {
+    const pastDate = new Date(Date.now() - 3600000); // 1 hour ago
+    expect(timeAgo(pastDate)).toBe('1 hour ago');
+  });
+
+  it('should return "2 hours ago" for a date 2 hours ago', () => {
+    const pastDate = new Date(Date.now() - 7200000); // 2 hours ago
+    expect(timeAgo(pastDate)).toBe('2 hours ago');
+  });
+
+  it('should return "1 day ago" for a date exactly one day ago', () => {
+    const pastDate = new Date(Date.now() - 86400000); // 1 day ago
+    expect(timeAgo(pastDate)).toBe('1 day ago');
+  });
+
+  it('should return "3 days ago" for a date 3 days ago', () => {
+    const pastDate = new Date(Date.now() - 259200000); // 3 days ago
+    expect(timeAgo(pastDate)).toBe('3 days ago');
+  });
+
+  it('should return "1 week ago" for a date exactly one week ago', () => {
+    const pastDate = new Date(Date.now() - 604800000); // 1 week ago
+    expect(timeAgo(pastDate)).toBe('1 week ago');
+  });
+
+  it('should return "2 weeks ago" for a date 2 weeks ago', () => {
+    const pastDate = new Date(Date.now() - 1209600000); // 2 weeks ago
+    expect(timeAgo(pastDate)).toBe('2 weeks ago');
+  });
+
+  it('should return "1 month ago" for a date exactly one month ago', () => {
+    const pastDate = new Date(Date.now() - 2592000000); // 1 month ago
+    expect(timeAgo(pastDate)).toBe('1 month ago');
+  });
+
+  it('should return "6 months ago" for a date 6 months ago', () => {
+    const pastDate = new Date(Date.now() - 15552000000); // 6 months ago
+    expect(timeAgo(pastDate)).toBe('6 months ago');
+  });
+
+  it('should return "1 year ago" for a date exactly one year ago', () => {
+    const pastDate = new Date(Date.now() - 31536000000); // 1 year ago
+    expect(timeAgo(pastDate)).toBe('1 year ago');
+  });
+
+  it('should return "2 years ago" for a date 2 years ago', () => {
+    const pastDate = new Date(Date.now() - 63072000000); // 2 years ago
+    expect(timeAgo(pastDate)).toBe('2 years ago');
+  });
+});
