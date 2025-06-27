@@ -21,7 +21,7 @@
     "lint": "eslint . --ext .ts,.tsx --ignore-path .gitignore --fix",
     "test": "vitest run",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest"
+    "test:watch": "vitest --watch"
   },
   "peerDependencies": {
     "@js-temporal/polyfill": "^0.5.1"

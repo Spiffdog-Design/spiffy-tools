@@ -1,5 +1,19 @@
-import { Temporal } from '@js-temporal/polyfill';
-
+export const formatTokens: Record<string, RegExp> = {
+  YYYY: /(\d{4})/,
+  MM: /(\d{2})/,
+  DD: /(\d{2})/,
+  HH: /(\d{2})/,
+  mm: /(\d{2})/,
+  ss: /(\d{2})/,
+};
+export const dateDefaults: Record<string, number> = {
+  YYYY: 0,
+  MM: 1,
+  DD: 1,
+  HH: 0,
+  mm: 0,
+  ss: 0,
+};
 export const dateFormat: string = 'MMM dd, yyyy';
 export const dateFormatOption: Intl.DateTimeFormatOptions = {
   year: 'numeric',
@@ -15,41 +29,68 @@ export const dateTimeFormatOption: Intl.DateTimeFormatOptions = {
 };
 
 /**
+ * Constructs a Date object from the provided date values, validating each component.
+ *
+ * @param {Record<string, number>} dateValues - An object containing date components.
+ * @param {number} dateValues.YYYY - The year component of the date.
+ * @param {number} dateValues.MM - The month component of the date (1-indexed).
+ * @param {number} dateValues.DD - The day component of the date.
+ * @param {number} dateValues.HH - The hours component of the date.
+ * @param {number} dateValues.mm - The minutes component of the date.
+ * @param {number} dateValues.ss - The seconds component of the date.
+ * @returns {Date | null} A Date object if the values are valid, otherwise null.
+ *
+ * @throws {Error} If any date component is out of its valid range.
+ */
+export function buildDateFromValues(dateValues: Record<string, number>): Date | null {
+  const year = dateValues.YYYY || dateDefaults.YYYY;
+  const month = (dateValues.MM || dateDefaults.MM) - 1; // Months are 0-indexed
+  const day = dateValues.DD || dateDefaults.DD;
+  const hours = dateValues.HH || dateDefaults.HH;
+  const minutes = dateValues.mm || dateDefaults.mm;
+  const seconds = dateValues.ss || dateDefaults.ss;
+
+  // Validate ranges
+  if (month < 0 || month > 11) return null; // Month should be between 0 and 11
+  if (day < 1 || day > 31) return null; // Day should be between 1 and 31
+  if (hours < 0 || hours > 23) return null; // Hours should be between 0 and 23
+  if (minutes < 0 || minutes > 59) return null; // Minutes should be between 0 and 59
+  if (seconds < 0 || seconds > 59) return null; // Seconds should be between 0 and 59
+
+  // Check for valid day in month
+  const date = new Date(year, month, day, hours, minutes, seconds);
+  if (date.getMonth() !== month) return null; // Invalid day for the month
+
+  return date;
+}
+
+/**
  * Formats a date according to the specified locale and options.
- * Supports Date, Temporal.PlainDate, and Temporal.Instant.
- * @param {string | number | Date | Temporal.PlainDate | Temporal.Instant} date - The date to format. Can be a string, number, Date object, Temporal.PlainDate, or Temporal.Instant.
+ * Supports Date objects.
+ * @param {string | number | Date} date - The date to format. Can be a string, number, or Date object.
  * @param {string} [locale='en-US'] - The locale string that determines the format of the date.
  * @param {Intl.DateTimeFormatOptions} [options={ year: 'numeric', month: 'short', day: 'numeric' }] - Options to customize the date format.
  * @returns {string} The formatted date string.
  * @example
  * format(new Date(), 'en-US'); // 'Oct 5, 2023'
  * format('2023-10-05', 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' }); // '5 October 2023'
- * format(Temporal.PlainDate.from('2023-10-05'), 'en-US'); // 'Oct 5, 2023'
- * format(Temporal.Instant.from('2023-10-05T00:00Z'), 'en-US'); // 'Oct 5, 2023'
  */
 export function format(
-  date: string | number | Date | Temporal.PlainDate | Temporal.Instant,
+  date: string | number | Date,
   locale: string = 'en-US',
   options: Intl.DateTimeFormatOptions = dateFormatOption,
 ): string {
-  let jsDate: Date;
-  if (date instanceof Temporal.PlainDate) {
-    jsDate = new Date(date.year, date.month - 1, date.day);
-  } else if (date instanceof Temporal.Instant) {
-    jsDate = new Date(date.epochMilliseconds);
-  } else {
-    jsDate = new Date(date);
-  }
+  const jsDate = new Date(date);
   return jsDate.toLocaleDateString(locale, options);
 }
 
 /**
  * Retrieves the preferred locale of the user's browser.
  * It checks for the locale in the following order:
- * - `navigator.languages[0]` for Chrome and Firefox
- * - `navigator.language` for all browsers
- * - `navigator.userLanguage` for Internet Explorer <= 10
- * @returns {string | null | undefined} The preferred locale of the user's browser, or `undefined` if not available.
+ * - navigator.languages[0] for Chrome and Firefox
+ * - navigator.language for all browsers
+ * - navigator.userLanguage for Internet Explorer <= 10
+ * @returns {string | null | undefined} The preferred locale of the user's browser, or undefined if not available.
  * @example
  * const locale = getLocale();
  * console.log(locale); // e.g., 'en-US'
@@ -86,22 +127,12 @@ export function getMonthList(
 }
 
 /**
- * Checks if a value is a JavaScript Date object or a Temporal value.
+ * Checks if a value is a JavaScript Date object.
  * @param value - The value to check.
- * @returns {boolean} True if the value is a Date or Temporal value, false otherwise.
+ * @returns {boolean} True if the value is a Date, false otherwise.
  */
-export function isDateOrTemporal(value: any): boolean {
-  return (
-    value instanceof Date ||
-    value instanceof Temporal.PlainDate ||
-    value instanceof Temporal.Instant ||
-    value instanceof Temporal.PlainDateTime ||
-    value instanceof Temporal.PlainTime ||
-    value instanceof Temporal.PlainYearMonth ||
-    value instanceof Temporal.PlainMonthDay ||
-    value instanceof Temporal.ZonedDateTime ||
-    value instanceof Temporal.Duration
-  );
+export function isDate(value: any): boolean {
+  return value instanceof Date;
 }
 
 /**
@@ -111,50 +142,30 @@ export function isDateOrTemporal(value: any): boolean {
  * @returns {Date | null} A Date object if parsing is successful, or null if it fails.
  */
 export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date | null {
-  const formatTokens: { [key: string]: RegExp } = {
-    YYYY: /(\d{4})/,
-    MM: /(\d{2})/,
-    DD: /(\d{2})/,
-    HH: /(\d{2})/,
-    mm: /(\d{2})/,
-    ss: /(\d{2})/,
-  };
+  if (dateString == null) return null;
 
-  const dateComponents: { [key: string]: number } = {
-    YYYY: 0,
-    MM: 1,
-    DD: 1,
-    HH: 0,
-    mm: 0,
-    ss: 0,
-  };
-
+  // Replace format tokens with their regex patterns
   const regexString = format.replace(/YYYY|MM|DD|HH|mm|ss/g, (match) => formatTokens[match].source);
-
   const regex = new RegExp(`^${regexString}$`);
   const matches = dateString.match(regex);
+  if (!matches) return null;
 
-  if (!matches) {
-    return null;
-  }
-
-  let dateValues: { [key: string]: number } = {};
-
+  let dateValues: Record<string, number> = {};
   let matchIndex = 1;
-  for (const token of Object.keys(formatTokens)) {
-    if (format.includes(token)) {
-      dateValues[token] = parseInt(matches[matchIndex++], 10);
-    }
+
+  // Determine the order of tokens in the format string
+  const tokenOrder: string[] = [];
+  format.replace(/YYYY|MM|DD|HH|mm|ss/g, (match) => {
+    tokenOrder.push(match);
+    return match;
+  });
+
+  // Assign values to the correct tokens based on their order
+  for (const token of tokenOrder) {
+    dateValues[token] = parseInt(matches[matchIndex++], 10);
   }
 
-  const year = dateValues.YYYY || dateComponents.YYYY;
-  const month = (dateValues.MM || dateComponents.MM) - 1; // Months are 0-indexed
-  const day = dateValues.DD || dateComponents.DD;
-  const hours = dateValues.HH || dateComponents.HH;
-  const minutes = dateValues.mm || dateComponents.mm;
-  const seconds = dateValues.ss || dateComponents.ss;
-
-  return new Date(year, month, day, hours, minutes, seconds);
+  return buildDateFromValues(dateValues);
 }
 
 /**
@@ -167,7 +178,6 @@ export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date |
 export function timeAgo(pastDate: Date): string {
   const now = new Date();
   const seconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
-
   const intervals: { [key: string]: number } = {
     year: 31536000,
     month: 2592000,
@@ -177,13 +187,11 @@ export function timeAgo(pastDate: Date): string {
     minute: 60,
     second: 1,
   };
-
   for (const [unit, secondsInUnit] of Object.entries(intervals)) {
     const count = Math.floor(seconds / secondsInUnit);
     if (count >= 1) {
       return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
     }
   }
-
   return 'just now';
 }
