@@ -10,7 +10,7 @@ export default defineConfig({
     target: 'esnext',
     lib: {
       entry: './lib/index.ts', // Specifies the entry point for building the library.
-      fileName: (format, name) => `${name}.${format}.js`, // Generates the output file name based on the format.
+      fileName: (format, name) => `${name}.js`, // Generates the output file name based on the format.
       formats: ['es'], // Specifies the output formats (ES modules).
     },
     // rollupOptions: {
