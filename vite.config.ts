@@ -13,12 +13,13 @@ export default defineConfig({
       fileName: (format, name) => `${name}.js`, // Generates the output file name based on the format.
       formats: ['es'], // Specifies the output formats (ES modules).
     },
-    // rollupOptions: {
-    //   // external: [...Object.keys(peerDependencies)], // Defines external dependencies for Rollup bundling.
-    //   output: {
-    //     preserveModules: true,
-    //   },
-    // },
+    rollupOptions: {
+      external: (id) => id.endsWith('.test.ts'),
+      // external: [...Object.keys(peerDependencies)], // Defines external dependencies for Rollup bundling.
+      // output: {
+      //   preserveModules: true,
+      // },
+    },
     sourcemap: true, // Generates source maps for debugging.
     emptyOutDir: true, // Clears the output directory before building.
   },
