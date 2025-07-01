@@ -1,6 +1,70 @@
 import { describe, it, expect, vi } from 'vitest';
-import { dateFormatOption, format, getLocale, getMonthList, parse, timeAgo } from '../date'; // Adjust the import path as necessary
+import {
+  addDays,
+  dateFormatOption,
+  daysToMs,
+  format,
+  getDateMidnight,
+  getLocale,
+  getMonthList,
+  getTodayMidnight,
+  getTomorrowMidnight,
+  getYTDDays,
+  hoursToMs,
+  minutesToMs,
+  msToDays,
+  msToHours,
+  msToMinutes,
+  msToSeconds,
+  parse,
+  secondsToMs,
+  subtractDays,
+  timeAgo,
+} from '../date'; // Adjust the import path as necessary
 
+describe('addDays', () => {
+  it('should add the specified number of days to a given date', () => {
+    const initialDate = new Date('2023-10-01');
+    const result = addDays(initialDate, 5);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-06');
+  });
+
+  it('should handle negative numbers to subtract days', () => {
+    const initialDate = new Date('2023-10-01');
+    const result = addDays(initialDate, -3);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-09-28');
+  });
+
+  it('should return the same date if noOfDays is 0', () => {
+    const initialDate = new Date('2023-10-01');
+    const result = addDays(initialDate, 0);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-01');
+  });
+
+  it('should correctly handle month boundaries', () => {
+    const initialDate = new Date('2023-01-31');
+    const result = addDays(initialDate, 1);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-02-01');
+  });
+
+  it('should correctly handle year boundaries', () => {
+    const initialDate = new Date('2023-12-31');
+    const result = addDays(initialDate, 1);
+    expect(result.toISOString().slice(0, 10)).toBe('2024-01-01');
+  });
+
+  it('should handle date strings as input', () => {
+    const initialDate = '2023-10-01';
+    const result = addDays(initialDate, 10);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-11');
+  });
+
+  it('should handle timestamps as input', () => {
+    const initialDate = new Date('2023-10-01').getTime();
+    const result = addDays(initialDate, 10);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-11');
+  });
+});
 describe('format', () => {
   it('should format a Date object correctly', () => {
     const date = new Date(Date.UTC(2023, 9, 5));
@@ -27,6 +91,16 @@ describe('format', () => {
     const date = new Date(Date.UTC(2023, 9, 5)); // Use UTC date
     const formattedDate = format(date);
     expect(formattedDate).toBe(date.toLocaleString('en-US', dateFormatOption));
+  });
+});
+describe('getDateMidnight', () => {
+  it('should set the time of the given date to midnight', () => {
+    const date = new Date('2023-10-10T15:30:00');
+    const result = getDateMidnight(date);
+    expect(result.getHours()).toBe(0);
+    expect(result.getMinutes()).toBe(0);
+    expect(result.getSeconds()).toBe(0);
+    expect(result.getMilliseconds()).toBe(0);
   });
 });
 describe('getLocale', () => {
@@ -111,6 +185,46 @@ describe('getMonthList', () => {
     expect(months).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
   });
 });
+describe('getTodayMidnight', () => {
+  it("should return today's date set to midnight", () => {
+    const result = getTodayMidnight();
+    const now = new Date();
+    expect(result.getFullYear()).toBe(now.getFullYear());
+    expect(result.getMonth()).toBe(now.getMonth());
+    expect(result.getDate()).toBe(now.getDate());
+    expect(result.getHours()).toBe(0);
+    expect(result.getMinutes()).toBe(0);
+    expect(result.getSeconds()).toBe(0);
+    expect(result.getMilliseconds()).toBe(0);
+  });
+});
+describe('getTomorrowMidnight', () => {
+  it("should return tomorrow's date set to midnight", () => {
+    const result = getTomorrowMidnight();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    expect(result.getFullYear()).toBe(tomorrow.getFullYear());
+    expect(result.getMonth()).toBe(tomorrow.getMonth());
+    expect(result.getDate()).toBe(tomorrow.getDate());
+    expect(result.getHours()).toBe(0);
+    expect(result.getMinutes()).toBe(0);
+    expect(result.getSeconds()).toBe(0);
+    expect(result.getMilliseconds()).toBe(0);
+  });
+});
+describe('getYTDDays', () => {
+  it('should calculate the number of days from the start of the year to tomorrow', () => {
+    const result = getYTDDays();
+
+    const now = new Date();
+    const today = new Date(now.setHours(0, 0, 0, 0));
+    const startOfYear = new Date(today.getFullYear(), 0, 0);
+    const dayInMs = daysToMs(1);
+    const expectedDays = Math.ceil((today.getTime() - startOfYear.getTime()) / dayInMs);
+
+    expect(result).toBe(expectedDays);
+  });
+});
 describe('parse', () => {
   it('should parse a date string in the default format "YYYY/MM/DD"', () => {
     const date = parse('2023/10/05');
@@ -155,6 +269,49 @@ describe('parse', () => {
   it('should return null for an undefined input', () => {
     const date = parse(undefined as unknown as string, 'YYYY-MM-DD');
     expect(date).toBeNull();
+  });
+});
+describe('subtractDays', () => {
+  it('should subtract the specified number of days from a given date', () => {
+    const initialDate = new Date('2023-10-10');
+    const result = subtractDays(initialDate, 5);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-05');
+  });
+
+  it('should handle negative numbers to add days', () => {
+    const initialDate = new Date('2023-10-10');
+    const result = subtractDays(initialDate, -3);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-13');
+  });
+
+  it('should return the same date if noOfDays is 0', () => {
+    const initialDate = new Date('2023-10-10');
+    const result = subtractDays(initialDate, 0);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-10-10');
+  });
+
+  it('should correctly handle month boundaries', () => {
+    const initialDate = new Date('2023-03-01');
+    const result = subtractDays(initialDate, 1);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-02-28');
+  });
+
+  it('should correctly handle year boundaries', () => {
+    const initialDate = new Date('2024-01-01');
+    const result = subtractDays(initialDate, 1);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-12-31');
+  });
+
+  it('should handle date strings as input', () => {
+    const initialDate = '2023-10-10';
+    const result = subtractDays(initialDate, 10);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-09-30');
+  });
+
+  it('should handle timestamps as input', () => {
+    const initialDate = new Date('2023-10-10').getTime();
+    const result = subtractDays(initialDate, 10);
+    expect(result.toISOString().slice(0, 10)).toBe('2023-09-30');
   });
 });
 describe('timeAgo', () => {
@@ -217,5 +374,39 @@ describe('timeAgo', () => {
   it('should return "2 years ago" for a date 2 years ago', () => {
     const pastDate = new Date(Date.now() - 63072000000); // 2 years ago
     expect(timeAgo(pastDate)).toBe('2 years ago');
+  });
+});
+
+describe('Time Conversion Functions', () => {
+  it('should convert days to milliseconds', () => {
+    expect(daysToMs(1)).toBe(24 * 60 * 60 * 1000);
+  });
+
+  it('should convert hours to milliseconds', () => {
+    expect(hoursToMs(1)).toBe(60 * 60 * 1000);
+  });
+
+  it('should convert minutes to milliseconds', () => {
+    expect(minutesToMs(1)).toBe(60 * 1000);
+  });
+
+  it('should convert seconds to milliseconds', () => {
+    expect(secondsToMs(1)).toBe(1000);
+  });
+
+  it('should convert milliseconds to days', () => {
+    expect(msToDays(24 * 60 * 60 * 1000)).toBe(1);
+  });
+
+  it('should convert milliseconds to hours', () => {
+    expect(msToHours(60 * 60 * 1000)).toBe(1);
+  });
+
+  it('should convert milliseconds to minutes', () => {
+    expect(msToMinutes(60 * 1000)).toBe(1);
+  });
+
+  it('should convert milliseconds to seconds', () => {
+    expect(msToSeconds(1000)).toBe(1);
   });
 });

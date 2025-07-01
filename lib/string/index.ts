@@ -1,15 +1,15 @@
 /**
  * Checks if a value contains a search string.
- * @param {any} value - The value to be checked, which will be converted to a string.
+ * @param {string | null} value - The value to be checked, which will be converted to a string.
  * @param {string} search - The search string to look for within the value.
  * @returns {boolean} True if the search string is found within the value, false otherwise.
  * @example
  * contains('hello world', 'world'); // true
  * contains(null, 'world'); // false
  */
-export const contains = (value: any, search: string): boolean => {
+export function contains(value: string | null, search: string): boolean {
   return isNullOrEmpty(value) ? false : String(value).indexOf(search) >= 0;
-};
+}
 
 /**
  * Pads the end of a string with a specified pad string until the target length is reached.
@@ -21,9 +21,9 @@ export const contains = (value: any, search: string): boolean => {
  * padEnd('hello', 10, ' '); // 'hello     '
  * padEnd('123', 5, '0'); // '12300'
  */
-export const padEnd = (value: any, targetLength: number, padString: string): string => {
+export function padEnd(value: string, targetLength: number, padString: string): string {
   return String(value).padEnd(targetLength, padString);
-};
+}
 
 /**
  * Pads the start of a string with a specified pad string until the target length is reached.
@@ -35,9 +35,9 @@ export const padEnd = (value: any, targetLength: number, padString: string): str
  * padStart('hello', 10, ' '); // '     hello'
  * padStart('123', 5, '0'); // '00123'
  */
-export const padStart = (value: any, targetLength: number, padString: string): string => {
+export function padStart(value: string, targetLength: number, padString: string): string {
   return String(value).padStart(targetLength, padString);
-};
+}
 
 /**
  * Checks if a value is not null or empty.
@@ -47,7 +47,9 @@ export const padStart = (value: any, targetLength: number, padString: string): s
  * isNotNullOrEmpty('hello'); // true
  * isNotNullOrEmpty(''); // false
  */
-export const isNotNullOrEmpty = (value: any): boolean => !isNullOrEmpty(value);
+export function isNotNullOrEmpty(value: any): boolean {
+  return !isNullOrEmpty(value);
+}
 
 /**
  * Checks if a value is null or empty.
@@ -58,6 +60,6 @@ export const isNotNullOrEmpty = (value: any): boolean => !isNullOrEmpty(value);
  * isNullOrEmpty(''); // true
  * isNullOrEmpty('hello'); // false
  */
-export const isNullOrEmpty = (value: any): boolean => {
+export function isNullOrEmpty(value: any): boolean {
   return value == null || String(value).trim() === '';
-};
+}
