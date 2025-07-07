@@ -1,16 +1,39 @@
 {
   "name": "@spiffdog/spiffy-tools",
   "version": "0.3.2",
+  "license": "MIT",
   "type": "module",
-  "publishConfig": {
-    "access": "public"
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./array": {
+      "import": "./dist/array/index.esm.js",
+      "require": "./dist/array/index.cjs.js"
+    },
+    "./date": {
+      "import": "./dist/date/index.esm.js",
+      "require": "./dist/date/index.cjs.js"
+    },
+    "./process": {
+      "import": "./dist/process/index.esm.js",
+      "require": "./dist/process/index.cjs.js"
+    },
+    "./string": {
+      "import": "./dist/string/index.esm.js",
+      "require": "./dist/string/index.cjs.js"
+    }
   },
   "files": [
     "dist"
   ],
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc --p ./tsconfig-build.json && vite build",
     "bump-major": "npm version premajor",

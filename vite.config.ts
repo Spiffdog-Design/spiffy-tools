@@ -2,23 +2,35 @@
 
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-// import { peerDependencies } from './package.json';
+import path from 'path';
 
 export default defineConfig({
   build: {
-    copyPublicDir: false, // Disables copying the public directory to the output directory.
-    target: 'esnext',
     lib: {
-      entry: './lib/index.ts', // Specifies the entry point for building the library.
+      entry: {
+        index: path.resolve(__dirname, 'lib/index.ts'),
+        array: path.resolve(__dirname, 'lib/array/index.ts'),
+        date: path.resolve(__dirname, 'lib/date/index.ts'),
+        process: path.resolve(__dirname, 'lib/process/index.ts'),
+        string: path.resolve(__dirname, 'lib/string/index.ts'),
+      },
       fileName: (format, name) => `${name}.js`, // Generates the output file name based on the format.
       formats: ['es'], // Specifies the output formats (ES modules).
     },
     rollupOptions: {
       external: (id) => id.endsWith('.test.ts'),
-      // external: [...Object.keys(peerDependencies)], // Defines external dependencies for Rollup bundling.
-      // output: {
-      //   preserveModules: true,
-      // },
+      output: {
+        preserveModules: true, // preserves folder structure for better tree shaking
+        preserveModulesRoot: 'lib',
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'index') {
+            // Put main entry directly at root as index.[format].js
+            return `index.[format].js`;
+          }
+          // For others, keep the folder structure
+          return '[name]/index.[format].js';
+        },
+      },
     },
     sourcemap: true, // Generates source maps for debugging.
     emptyOutDir: true, // Clears the output directory before building.
