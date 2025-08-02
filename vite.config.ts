@@ -3,9 +3,15 @@
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   build: {
+    outDir: 'dist',
     lib: {
       entry: {
         index: path.resolve(__dirname, 'lib/index.ts'),
@@ -14,28 +20,25 @@ export default defineConfig({
         process: path.resolve(__dirname, 'lib/process/index.ts'),
         string: path.resolve(__dirname, 'lib/string/index.ts'),
       },
-      fileName: (format, name) => `${name}.js`, // Generates the output file name based on the format.
-      formats: ['es'], // Specifies the output formats (ES modules).
+      fileName: (format, name) => `${name}.${format}.js`,
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: (id) => id.endsWith('.test.ts'),
       output: {
-        preserveModules: true, // preserves folder structure for better tree shaking
+        preserveModules: true,
         preserveModulesRoot: 'lib',
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name === 'index') {
-            // Put main entry directly at root as index.[format].js
-            return `index.[format].js`;
+            return `index.${chunkInfo.format}.js`;
           }
-          // For others, keep the folder structure
-          return '[name]/index.[format].js';
+          return '[name]/index.' + chunkInfo.format + '.js';
         },
       },
     },
-    sourcemap: true, // Generates source maps for debugging.
-    emptyOutDir: true, // Clears the output directory before building.
+    sourcemap: true,
+    emptyOutDir: true,
   },
-  plugins: [dts()], // Uses the 'vite-plugin-dts' plugin for generating TypeScript declaration files (d.ts).
+  plugins: [dts()],
   test: {
     globals: true,
     environment: 'jsdom',

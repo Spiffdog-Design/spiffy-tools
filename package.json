@@ -3,28 +3,28 @@
   "version": "0.3.2",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js"
     },
     "./array": {
-      "import": "./dist/array/index.esm.js",
+      "import": "./dist/array/index.es.js",
       "require": "./dist/array/index.cjs.js"
     },
     "./date": {
-      "import": "./dist/date/index.esm.js",
+      "import": "./dist/date/index.es.js",
       "require": "./dist/date/index.cjs.js"
     },
     "./process": {
-      "import": "./dist/process/index.esm.js",
+      "import": "./dist/process/index.es.js",
       "require": "./dist/process/index.cjs.js"
     },
     "./string": {
-      "import": "./dist/string/index.esm.js",
+      "import": "./dist/string/index.es.js",
       "require": "./dist/string/index.cjs.js"
     }
   },

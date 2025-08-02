@@ -21,15 +21,17 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    // Add this to enable Vitest types ONLY in test files:
+    "types": []
   },
   "include": [
-    "lib"
+    "lib",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "exclude": [
-    "**/*.test.ts",
-    "**/*.spec.ts",
     "node_modules",
     "dist"
-  ] // Exclude test files and other directories
+  ]
 }
