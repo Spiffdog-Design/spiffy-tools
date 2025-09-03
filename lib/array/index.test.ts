@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { flattenArray, flattenKeys, flattenValues, hasEntries, sort } from '../array';
+import { flattenArray, flattenKeys, flattenValues, hasEntries, sort, sorter } from '.';
 
 describe('array tests', () => {
   describe('flattenArray', () => {
@@ -112,6 +112,80 @@ describe('array tests', () => {
         { name: 'Alice', age: 30 },
         { name: 'Bob', age: 25 },
         { name: 'Charlie', age: 35 },
+      ]);
+    });
+  });
+
+  describe('sorter', () => {
+    it('should sort objects by a numeric property', () => {
+      const array = [
+        { id: 3, name: 'Charlie' },
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ];
+      array.sort(sorter('id'));
+      expect(array).toEqual([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+      ]);
+    });
+
+    it('should sort objects by a string property', () => {
+      const array = [
+        { id: 1, name: 'Charlie' },
+        { id: 2, name: 'Alice' },
+        { id: 3, name: 'Bob' },
+      ];
+      array.sort(sorter('name'));
+      expect(array).toEqual([
+        { id: 2, name: 'Alice' },
+        { id: 3, name: 'Bob' },
+        { id: 1, name: 'Charlie' },
+      ]);
+    });
+
+    it('should handle an empty array', () => {
+      const array: { id: number; name: string }[] = [];
+      array.sort(sorter('id'));
+      expect(array).toEqual([]);
+    });
+
+    it('should handle an array with one element', () => {
+      const array = [{ id: 1, name: 'Alice' }];
+      array.sort(sorter('id'));
+      expect(array).toEqual([{ id: 1, name: 'Alice' }]);
+    });
+
+    it('should not modify an already sorted array', () => {
+      const array = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+      ];
+      array.sort(sorter('id'));
+      expect(array).toEqual([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+      ]);
+    });
+
+    it('should sort objects with mixed types correctly', () => {
+      const array = [
+        { id: 1, value: '10' },
+        { id: 2, value: 2 },
+        { id: 3, value: 'text-string' },
+        { id: 4, value: null },
+        { id: 5, value: '3' },
+      ];
+      array.sort(sorter('value'));
+      expect(array).toEqual([
+        { id: 2, value: 2 },
+        { id: 5, value: '3' },
+        { id: 1, value: '10' },
+        { id: 4, value: null },
+        { id: 3, value: 'text-string' },
       ]);
     });
   });

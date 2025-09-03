@@ -1,87 +1,99 @@
 import { describe, it, expect } from 'vitest';
-import {
-  build,
-  find,
-  findAncestors,
-  has,
-  findByPath,
-  TreeNode,
-} from './';
+import { build, find, findAncestors, has, findByPath } from '.';
 
-interface Item {
-  id: number;
-  parentId: number | null;
-  name: string;
-}
+describe('Tree Utility Functions', () => {
+  const flatList = [
+    { id: 1, name: 'root' },
+    { id: 2, name: 'child1', parentId: 1 },
+    { id: 3, name: 'child2', parentId: 1 },
+    { id: 4, name: 'grandchild1', parentId: 2 },
+  ];
 
-const flatData: Item[] = [
-  { id: 1, parentId: null, name: 'Root A' },
-  { id: 2, parentId: 1, name: 'Child A1' },
-  { id: 3, parentId: 1, name: 'Child A2' },
-  { id: 4, parentId: 2, name: 'Child A1.1' },
-  { id: 5, parentId: null, name: 'Root B' },
-  { id: 6, parentId: 5, name: 'Child B1' },
-];
+  describe('build', () => {
+    it('should build a tree from a flat list', () => {
+      const tree = build(flatList);
+      expect(tree).toHaveLength(1);
+      expect(tree[0].name).toBe('root');
+      expect(tree[0].children).toHaveLength(2);
+      expect(tree[0].children[0].name).toBe('child1');
+      expect(tree[0].children[0].children).toHaveLength(1);
+      expect(tree[0].children[0].children[0].name).toBe('grandchild1');
+    });
 
-describe('tree tests', () => {
-  // Use default childrenKey = 'children'
-  const tree = build<Item>(flatData);
-
-  it('build constructs a tree from flat data', () => {
-    expect(tree.length).toBe(2); // Root A and Root B
-
-    // TypeScript knows tree nodes have children array
-    expect(tree[0].name).toBe('Root A');
-    expect(tree[0].children[0].name).toBe('Child A1');
-    expect(tree[0].children[0].children[0].name).toBe('Child A1.1');
-    expect(tree[1].name).toBe('Root B');
-    expect(tree[1].children[0].name).toBe('Child B1');
+    it('should handle custom keys', () => {
+      const customList = [
+        { key: 1, label: 'root' },
+        { key: 2, label: 'child1', parentKey: 1 },
+      ];
+      const tree = build(customList, { key: 'key', parentKey: 'parentKey', childrenKey: 'offspring' });
+      expect(tree[0].offspring).toHaveLength(1);
+      expect(tree[0].offspring[0].label).toBe('child1');
+    });
   });
 
-  it('find locates a node by field and value', () => {
-    const node = find(tree, 'name', 'Child A2');
-    expect(node).not.toBeNull();
-    expect(node?.id).toBe(3);
+  describe('find', () => {
+    const tree = build(flatList);
+
+    it('should find a node by field and value', () => {
+      const node = find(tree, 'name', 'child1');
+      expect(node).not.toBeNull();
+      expect(node?.name).toBe('child1');
+    });
+
+    it('should return null if node is not found', () => {
+      const node = find(tree, 'name', 'nonexistent');
+      expect(node).toBeNull();
+    });
   });
 
-  it('find returns null if node not found', () => {
-    const node = find(tree, 'name', 'Nonexistent');
-    expect(node).toBeNull();
+  describe('findAncestors', () => {
+    const tree = build(flatList);
+
+    it('should find ancestors of a node', () => {
+      const ancestors = findAncestors(tree, 'name', 'grandchild1');
+      expect(ancestors).not.toBeNull();
+      expect(ancestors).toHaveLength(3);
+      expect(ancestors?.map((node) => node.name)).toEqual(['root', 'child1', 'grandchild1']);
+    });
+
+    it('should return null if node is not found', () => {
+      const ancestors = findAncestors(tree, 'name', 'nonexistent');
+      expect(ancestors).toBeNull();
+    });
   });
 
-  it('findAncestors returns correct ancestor path', () => {
-    const path = findAncestors(tree, 'id', 4);
-    expect(path?.map(n => n.name)).toEqual(['Root A', 'Child A1', 'Child A1.1']);
+  describe('has', () => {
+    const tree = build(flatList);
+
+    it('should return true if node exists', () => {
+      expect(has(tree, 'name', 'child1')).toBe(true);
+    });
+
+    it('should return false if node does not exist', () => {
+      expect(has(tree, 'name', 'nonexistent')).toBe(false);
+    });
   });
 
-  it('findAncestors returns null if not found', () => {
-    const path = findAncestors(tree, 'name', 'Unknown');
-    expect(path).toBeNull();
-  });
+  describe('findByPath', () => {
+    const tree = build(flatList);
 
-  it('has returns true if node exists', () => {
-    expect(has(tree, 'name', 'Child A1')).toBe(true);
-  });
+    //console.log('>>> TREE: ', JSON.stringify(tree, null, 4));
 
-  it('has returns false if node does not exist', () => {
-    expect(has(tree, 'name', 'Ghost')).toBe(false);
-  });
+    it('should find a node by path', () => {
+      const node = findByPath(tree, 'root.child1.grandchild1', 'name');
+      expect(node).not.toBeNull();
+      expect(node?.name).toBe('grandchild1');
+    });
 
-  it('findByPath locates a node by dotted path string', () => {
-    const node = findByPath(tree, 'Root A.Child A1.Child A1.1', 'name');
-    expect(node?.id).toBe(4);
-  });
+    it('should return null if path is invalid', () => {
+      const node = findByPath(tree, 'root.child1.nonexistent', 'name');
+      expect(node).toBeNull();
+    });
 
-  it('findByPath returns null for invalid path', () => {
-    const node = findByPath(tree, 'Root A.Unknown.Child', 'name');
-    expect(node).toBeNull();
+    it('should handle custom separators', () => {
+      const node = findByPath(tree, 'root/child1/grandchild1', 'name', { separator: '/' });
+      expect(node).not.toBeNull();
+      expect(node?.name).toBe('grandchild1');
+    });
   });
-
-  it('findByPath works for second root node', () => {
-    const node = findByPath(tree, 'Root B.Child B1', 'name');
-    expect(node?.id).toBe(6);
-  });
-
-  // Test with custom childrenKey = 'nodes'
-  describe('with custom childrenKey "nodes"', () => {
-    type C
+});

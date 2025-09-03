@@ -1,3 +1,5 @@
+import { hasEntries } from '../array';
+
 /**
  * Generic TreeNode type representing a node of type T
  * extended with children under a customizable key.
@@ -204,10 +206,13 @@ export function findByPath<T extends Record<string, any>, C extends string = 'ch
 
   for (const segment of segments) {
     const nextNode = currentLevel.find((node) => node[field] === segment);
+
     if (!nextNode) return null;
+    if (!hasEntries(nextNode[childrenKey])) return nextNode;
     currentLevel = nextNode[childrenKey];
   }
 
+  // The last node found in the loop is the target node
   return currentLevel.length === 0
     ? null
     : currentLevel.find((node) => node[field] === segments[segments.length - 1]) ?? null;

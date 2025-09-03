@@ -83,3 +83,42 @@ export function sort<T extends Record<string, any>>(arr: T[], key: keyof T): T[]
     return 0; // a and b are equal
   });
 }
+
+/**
+ * Creates a comparator function for sorting objects by a specified property.
+ * Attempts to sort numerically first, then falls back to string sorting.
+ *
+ * @template T - The type of objects in the array to be sorted.
+ * @param {keyof T} sortBy - The property key to sort the objects by.
+ * @returns {(a: T, b: T) => number} A comparator function that can be used with array sort methods.
+ *
+ * @example
+ * const array = [{ id: 2, value: '10' }, { id: 1, value: '2' }];
+ * array.sort(sorter('value'));
+ * // Result: [{ id: 1, value: '2' }, { id: 2, value: '10' }]
+ */
+export const sorter =
+  <T>(sortBy: keyof T) =>
+  (a: T, b: T): number => {
+    const aValue = a[sortBy];
+    const bValue = b[sortBy];
+
+    // Attempt to parse both values as numbers
+    const aNum = parseFloat(aValue as unknown as string);
+    const bNum = parseFloat(bValue as unknown as string);
+
+    // Check if both values are valid numbers
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      if (aNum < bNum) return -1;
+      if (aNum > bNum) return 1;
+      return 0;
+    }
+
+    // Fallback to string comparison
+    const aStr = String(aValue);
+    const bStr = String(bValue);
+
+    if (aStr < bStr) return -1;
+    if (aStr > bStr) return 1;
+    return 0;
+  };
