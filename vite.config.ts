@@ -4,36 +4,49 @@ import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { glob } from 'glob';
 
 // ES module compatible __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Function to get all TypeScript files excluding test files
+function getEntryPoints() {
+  return glob.sync('lib/**/*.ts', {
+    ignore: ['**/*.test.ts', '**/**.d.ts'],
+  });
+}
+
 export default defineConfig({
   build: {
     outDir: 'dist',
     lib: {
-      entry: {
-        index: path.resolve(__dirname, 'lib/index.ts'),
-        array: path.resolve(__dirname, 'lib/array/index.ts'),
-        date: path.resolve(__dirname, 'lib/date/index.ts'),
-        process: path.resolve(__dirname, 'lib/process/index.ts'),
-        string: path.resolve(__dirname, 'lib/string/index.ts'),
-      },
+      entry: getEntryPoints(),
       fileName: (format, name) => `${name}.${format}.js`,
-      formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      output: {
-        preserveModules: true,
-        preserveModulesRoot: 'lib',
-        entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'index') {
-            return `index.${chunkInfo.format}.js`;
-          }
-          return '[name]/index.' + chunkInfo.format + '.js';
+      output: [
+        {
+          format: 'es',
+          entryFileNames: (chunkInfo) => {
+            const [folder, ...rest] = chunkInfo.name.split('/');
+            const fileName = rest.length > 0 ? rest.join('/') : 'index';
+            return `${folder}/${fileName}.es.js`;
+          },
+          preserveModules: true,
+          preserveModulesRoot: 'lib',
         },
-      },
+        {
+          format: 'cjs',
+          entryFileNames: (chunkInfo) => {
+            const [folder, ...rest] = chunkInfo.name.split('/');
+            const fileName = rest.length > 0 ? rest.join('/') : 'index';
+            return `${folder}/${fileName}.cjs.js`;
+          },
+          preserveModules: true,
+          preserveModulesRoot: 'lib',
+        },
+      ],
     },
     sourcemap: true,
     emptyOutDir: true,

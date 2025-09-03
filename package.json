@@ -52,6 +52,7 @@
   "devDependencies": {
     "@js-temporal/polyfill": "^0.5.1",
     "@testing-library/jest-dom": "^6.6.3",
+    "glob": "^11.0.3",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",

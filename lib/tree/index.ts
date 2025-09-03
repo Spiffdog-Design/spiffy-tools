@@ -100,7 +100,7 @@ export function find<T extends Record<string, any>, C extends string = 'children
     const node = stack.pop()!;
     if (node[field] === value) return node;
     if (Array.isArray(node[childrenKey])) {
-      stack.push(...node[childrenKey]);
+      stack.push(...(node[childrenKey] as TreeNode<T, C>[]));
     }
   }
 
@@ -133,7 +133,7 @@ export function findAncestors<T extends Record<string, any>, C extends string = 
   while (stack.length) {
     const { node, path } = stack.pop()!;
     if (node[field] === value) return path;
-    const children = node[childrenKey];
+    const children = node[childrenKey] as TreeNode<T, C>[];
     if (Array.isArray(children)) {
       for (const child of children) {
         stack.push({ node: child, path: [...path, child] });
@@ -168,7 +168,7 @@ export function has<T extends Record<string, any>, C extends string = 'children'
     const node = stack.pop()!;
     if (node[field] === value) return true;
     if (Array.isArray(node[childrenKey])) {
-      stack.push(...node[childrenKey]);
+      stack.push(...(node[childrenKey] as TreeNode<T, C>[]));
     }
   }
 
@@ -209,7 +209,7 @@ export function findByPath<T extends Record<string, any>, C extends string = 'ch
 
     if (!nextNode) return null;
     if (!hasEntries(nextNode[childrenKey])) return nextNode;
-    currentLevel = nextNode[childrenKey];
+    currentLevel = nextNode[childrenKey] as TreeNode<T, C>[];
   }
 
   // The last node found in the loop is the target node
