@@ -16,7 +16,7 @@ import { isNullOrEmpty } from '../string';
  */
 export function parseNumber(value: string): number | null {
   if (isNullOrEmpty(value)) return null;
-  if (!isNaN(Number(value))) return Number(value);
+  if (!Number.isNaN(Number(value))) return Number(value);
 
   // Define the regular expression for matching a valid en-US formatted number
   const usNumberPattern = /^-?\d{1,3}(,\d{3})*(\.\d+)?$/;
@@ -29,8 +29,8 @@ export function parseNumber(value: string): number | null {
   try {
     // Remove commas and parse the number
     const sanitizedNumberString = value.replace(/,/g, '');
-    const parsed = parseFloat(sanitizedNumberString);
-    return isNaN(parsed) ? null : parsed;
+    const parsed = Number.parseFloat(sanitizedNumberString);
+    return Number.isNaN(parsed) ? null : parsed;
   } catch {
     return null;
   }

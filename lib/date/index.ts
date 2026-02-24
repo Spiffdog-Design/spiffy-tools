@@ -42,7 +42,7 @@ export const dateTimeFormatOption: Intl.DateTimeFormatOptions = {
  * @param {number} [noOfDays=0] - The number of days to add to the date. Defaults to 0 if not provided.
  * @returns {Date} A new Date object representing the date after adding the specified number of days.
  */
-export function addDays(date: Date | string | number, noOfDays: number = 0): Date {
+export function addDays(date: Date | string | number, noOfDays = 0): Date {
   const newDate = new Date(date);
   newDate.setDate(newDate.getDate() + noOfDays);
   return newDate;
@@ -90,7 +90,7 @@ export function buildDateFromValues(dateValues: Record<string, number>): Date | 
  * @param {number} [days=1] - The number of days to convert.
  * @returns {number} The equivalent milliseconds.
  */
-export function daysToMs(days: number = 1): number {
+export function daysToMs(days = 1): number {
   return days * msInDay;
 }
 
@@ -107,7 +107,7 @@ export function daysToMs(days: number = 1): number {
  */
 export function format(
   date: string | number | Date,
-  locale: string = 'en-US',
+  locale = 'en-US',
   options: Intl.DateTimeFormatOptions = dateFormatOption,
 ): string {
   const jsDate = new Date(date);
@@ -116,12 +116,15 @@ export function format(
 
 /**
  * Sets the time of the given date to midnight (00:00:00).
+ * Does not mutate the input; returns a new Date.
  *
  * @param {Date} date - The date to set to midnight.
  * @returns {Date} A new Date object set to midnight.
  */
 export function getDateMidnight(date: Date): Date {
-  return new Date(date.setHours(0, 0, 0, 0));
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 
 /**
@@ -130,18 +133,16 @@ export function getDateMidnight(date: Date): Date {
  * - navigator.languages[0] for Chrome and Firefox
  * - navigator.language for all browsers
  * - navigator.userLanguage for Internet Explorer <= 10
+ *
+ * @browserOnly This function requires a DOM environment (window.navigator). It will return null in Node.js or other non-browser environments.
  * @returns {string | null | undefined} The preferred locale of the user's browser, or undefined if not available.
  * @example
  * const locale = getLocale();
  * console.log(locale); // e.g., 'en-US'
  */
 export function getLocale(): string | null | undefined {
-  const navigator = window?.navigator;
-  return navigator == null
-    ? null
-    : (navigator.languages && navigator.languages[0]) || // Chrome / Firefox
-        navigator.language || // All browsers
-        (navigator as any).userLanguage; // IE <= 10
+  const nav = window?.navigator as (Navigator & { userLanguage?: string }) | undefined;
+  return nav == null ? null : (nav.languages?.[0] ?? nav.language ?? nav.userLanguage);
 }
 
 /**
@@ -153,15 +154,13 @@ export function getLocale(): string | null | undefined {
  * @returns {string[]}
  */
 export function getMonthList(
-  locale: string = 'en-US',
+  locale = 'en-US',
   format: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow' | undefined = 'long',
-) {
-  const months = [];
+): string[] {
+  const months: string[] = [];
   const options: Intl.DateTimeFormatOptions = { month: format };
-  const date = new Date(2000, 0, 1); // Use a fixed year and day for consistency
   for (let i = 0; i < 12; i++) {
-    date.setMonth(i);
-    months.push(date.toLocaleString(locale, options));
+    months.push(new Date(2000, i, 1).toLocaleString(locale, options));
   }
   return months;
 }
@@ -201,16 +200,16 @@ export function getYTDDays(): number {
  * @param {number} [hours=1] - The number of hours to convert.
  * @returns {number} The equivalent milliseconds.
  */
-export function hoursToMs(hours: number = 1): number {
+export function hoursToMs(hours = 1): number {
   return hours * msInHour;
 }
 
 /**
  * Checks if a value is a JavaScript Date object.
  * @param value - The value to check.
- * @returns {boolean} True if the value is a Date, false otherwise.
+ * @returns True if the value is a Date, false otherwise.
  */
-export function isDate(value: any): boolean {
+export function isDate(value: unknown): value is Date {
   return value instanceof Date;
 }
 
@@ -220,7 +219,7 @@ export function isDate(value: any): boolean {
  * @param {number} [minutes=1] - The number of minutes to convert.
  * @returns {number} The equivalent milliseconds.
  */
-export function minutesToMs(minutes: number = 1): number {
+export function minutesToMs(minutes = 1): number {
   return minutes * msInMinute;
 }
 
@@ -230,7 +229,7 @@ export function minutesToMs(minutes: number = 1): number {
  * @param {number} [ms=0] - The number of milliseconds to convert.
  * @returns {number} The equivalent days.
  */
-export function msToDays(ms: number = 0): number {
+export function msToDays(ms = 0): number {
   return Math.ceil(ms / msInDay);
 }
 
@@ -240,7 +239,7 @@ export function msToDays(ms: number = 0): number {
  * @param {number} [ms=0] - The number of milliseconds to convert.
  * @returns {number} The equivalent hours.
  */
-export function msToHours(ms: number = 0): number {
+export function msToHours(ms = 0): number {
   return Math.ceil(ms / msInHour);
 }
 
@@ -250,7 +249,7 @@ export function msToHours(ms: number = 0): number {
  * @param {number} [ms=0] - The number of milliseconds to convert.
  * @returns {number} The equivalent minutes.
  */
-export function msToMinutes(ms: number = 0): number {
+export function msToMinutes(ms = 0): number {
   return Math.ceil(ms / msInMinute);
 }
 
@@ -260,7 +259,7 @@ export function msToMinutes(ms: number = 0): number {
  * @param {number} [ms=0] - The number of milliseconds to convert.
  * @returns {number} The equivalent seconds.
  */
-export function msToSeconds(ms: number = 0): number {
+export function msToSeconds(ms = 0): number {
   return Math.ceil(ms / msInSecond);
 }
 
@@ -270,7 +269,7 @@ export function msToSeconds(ms: number = 0): number {
  * @param format - The format string (e.g., 'YYYY-MM-DD', 'DD/MM/YYYY').
  * @returns {Date | null} A Date object if parsing is successful, or null if it fails.
  */
-export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date | null {
+export function parse(dateString: string, format = 'YYYY/MM/DD'): Date | null {
   if (dateString == null) return null;
 
   // Replace format tokens with their regex patterns
@@ -279,7 +278,7 @@ export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date |
   const matches = dateString.match(regex);
   if (!matches) return null;
 
-  let dateValues: Record<string, number> = {};
+  const dateValues: Record<string, number> = {};
   let matchIndex = 1;
 
   // Determine the order of tokens in the format string
@@ -291,7 +290,7 @@ export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date |
 
   // Assign values to the correct tokens based on their order
   for (const token of tokenOrder) {
-    dateValues[token] = parseInt(matches[matchIndex++], 10);
+    dateValues[token] = Number.parseInt(matches[matchIndex++], 10);
   }
 
   return buildDateFromValues(dateValues);
@@ -303,7 +302,7 @@ export function parse(dateString: string, format: string = 'YYYY/MM/DD'): Date |
  * @param {number} [seconds=1] - The number of seconds to convert.
  * @returns {number} The equivalent milliseconds.
  */
-export function secondsToMs(seconds: number = 1): number {
+export function secondsToMs(seconds = 1): number {
   return seconds * msInSecond;
 }
 
@@ -314,7 +313,7 @@ export function secondsToMs(seconds: number = 1): number {
  * @param {number} [noOfDays=0] - The number of days to subtract from the date. Defaults to 0 if not provided.
  * @returns {Date} A new Date object representing the date after subtracting the specified number of days.
  */
-export function subtractDays(date: Date | string | number, noOfDays: number = 0): Date {
+export function subtractDays(date: Date | string | number, noOfDays = 0): Date {
   return addDays(date, noOfDays * -1);
 }
 

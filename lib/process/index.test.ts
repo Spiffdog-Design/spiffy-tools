@@ -1,20 +1,28 @@
-import { describe, it, expect, vi } from 'vitest';
-import { debounce } from '../process'; // Adjust the import path as necessary
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { debounce } from '../process';
 
 describe('process tests', () => {
   describe('debounce', () => {
-    it('should call the function after the specified delay', async () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should call the function after the specified delay', () => {
       const mockFn = vi.fn();
       const debouncedFn = debounce(mockFn, 100);
 
       debouncedFn();
       expect(mockFn).not.toHaveBeenCalled();
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      vi.advanceTimersByTime(150);
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
-    it('should cancel previous calls if invoked again within the delay', async () => {
+    it('should cancel previous calls if invoked again within the delay', () => {
       const mockFn = vi.fn();
       const debouncedFn = debounce(mockFn, 100);
 
@@ -23,17 +31,27 @@ describe('process tests', () => {
       debouncedFn();
       expect(mockFn).not.toHaveBeenCalled();
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      vi.advanceTimersByTime(150);
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
-    it('should pass the correct arguments to the debounced function', async () => {
+    it('should pass the correct arguments to the debounced function', () => {
       const mockFn = vi.fn();
       const debouncedFn = debounce(mockFn, 100);
 
       debouncedFn('arg1', 'arg2');
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      vi.advanceTimersByTime(150);
       expect(mockFn).toHaveBeenCalledWith('arg1', 'arg2');
+    });
+
+    it('should cancel pending invocation when cancel is called', () => {
+      const mockFn = vi.fn();
+      const debouncedFn = debounce(mockFn, 100);
+
+      debouncedFn();
+      debouncedFn.cancel();
+      vi.advanceTimersByTime(150);
+      expect(mockFn).not.toHaveBeenCalled();
     });
   });
 });

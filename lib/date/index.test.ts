@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   addDays,
   dateFormatOption,
@@ -103,6 +103,13 @@ describe('date tests', () => {
       expect(result.getSeconds()).toBe(0);
       expect(result.getMilliseconds()).toBe(0);
     });
+
+    it('should not mutate the input date', () => {
+      const date = new Date('2023-10-10T15:30:00');
+      const originalHours = date.getHours();
+      getDateMidnight(date);
+      expect(date.getHours()).toBe(originalHours);
+    });
   });
   describe('getLocale', () => {
     it('should return the first language from navigator.languages if available', () => {
@@ -154,7 +161,20 @@ describe('date tests', () => {
     });
     it('should return short month names in English', () => {
       const months = getMonthList('en-US', 'short');
-      expect(months).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
+      expect(months).toEqual([
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ]);
     });
     it('should return numeric month names in English', () => {
       const months = getMonthList('en-US', 'numeric');
@@ -183,7 +203,20 @@ describe('date tests', () => {
     });
     it('should return 2-digit month names in English', () => {
       const months = getMonthList('en-US', '2-digit');
-      expect(months).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
+      expect(months).toEqual([
+        '01',
+        '02',
+        '03',
+        '04',
+        '05',
+        '06',
+        '07',
+        '08',
+        '09',
+        '10',
+        '11',
+        '12',
+      ]);
     });
   });
   describe('getTodayMidnight', () => {

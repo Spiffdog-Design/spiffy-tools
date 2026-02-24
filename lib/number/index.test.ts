@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { parseNumber } from '../number'; // Adjust the import path as necessary
 
 describe('number tests', () => {

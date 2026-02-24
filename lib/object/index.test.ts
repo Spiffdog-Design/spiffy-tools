@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // Assuming deepFreeze is imported from the module where it's defined
 import { deepFreeze } from '.';
@@ -10,7 +10,7 @@ describe('deepFreeze', () => {
 
     expect(Object.isFrozen(frozenObj)).toBe(true);
     expect(() => {
-      (frozenObj as any).a = 3;
+      (frozenObj as Record<string, number>).a = 3;
     }).toThrow();
   });
 
@@ -31,7 +31,7 @@ describe('deepFreeze', () => {
     expect(Object.isFrozen(frozenObj.b.d)).toBe(true);
 
     expect(() => {
-      (frozenObj.b as any).c = 4;
+      (frozenObj.b as unknown as Record<string, number>).c = 4;
     }).toThrow();
   });
 
@@ -48,7 +48,7 @@ describe('deepFreeze', () => {
     expect(Object.isFrozen(frozenObj.b.c)).toBe(true);
 
     expect(() => {
-      (frozenObj.a as any)[0] = 10;
+      (frozenObj.a as number[])[0] = 10;
     }).toThrow();
   });
 
@@ -61,7 +61,7 @@ describe('deepFreeze', () => {
 
   it('should handle non-object values gracefully', () => {
     const num = 42;
-    const frozenNum = deepFreeze(num as any);
+    const frozenNum = deepFreeze(num as unknown as object);
 
     expect(frozenNum).toBe(42);
   });

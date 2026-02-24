@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { flattenArray, flattenKeys, flattenValues, hasEntries, sort, sorter } from '.';
 
 describe('array tests', () => {

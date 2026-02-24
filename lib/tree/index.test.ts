@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { build, find, findAncestors, has, findByPath } from '.';
+import { describe, expect, it } from 'vitest';
+import { build, find, findAncestors, findByPath, has } from '.';
 
 describe('Tree Utility Functions', () => {
   const flatList = [
@@ -25,7 +25,11 @@ describe('Tree Utility Functions', () => {
         { key: 1, label: 'root' },
         { key: 2, label: 'child1', parentKey: 1 },
       ];
-      const tree = build(customList, { key: 'key', parentKey: 'parentKey', childrenKey: 'offspring' });
+      const tree = build(customList, {
+        key: 'key',
+        parentKey: 'parentKey',
+        childrenKey: 'offspring',
+      });
       expect(tree[0].offspring).toHaveLength(1);
       expect(tree[0].offspring[0].label).toBe('child1');
     });
@@ -94,6 +98,19 @@ describe('Tree Utility Functions', () => {
       const node = findByPath(tree, 'root/child1/grandchild1', 'name', { separator: '/' });
       expect(node).not.toBeNull();
       expect(node?.name).toBe('grandchild1');
+    });
+
+    it('should find a node by path when the target node has children', () => {
+      const listWithChildren = [
+        { id: 1, name: 'root' },
+        { id: 2, name: 'parent', parentId: 1 },
+        { id: 3, name: 'child', parentId: 2 },
+      ];
+      const treeWithChildren = build(listWithChildren);
+      const node = findByPath(treeWithChildren, 'root.parent', 'name');
+      expect(node).not.toBeNull();
+      expect(node?.name).toBe('parent');
+      expect(node?.children).toHaveLength(1);
     });
   });
 });

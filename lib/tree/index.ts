@@ -40,13 +40,13 @@ interface BuildOptions<C extends string = 'children'> {
  * @param {BuildOptions<C>} [options] - Optional keys customization.
  * @returns {TreeNode<T, C>[]} Tree of nodes with nested children.
  */
-export function build<T extends Record<string, any>, C extends string = 'children'>(
+export function build<T extends Record<string, unknown>, C extends string = 'children'>(
   list: T[],
   options: BuildOptions<C> = {},
 ): TreeNode<T, C>[] {
   const { key = 'id', parentKey = 'parentId', childrenKey = 'children' as C } = options;
 
-  const map = new Map<any, TreeNode<T, C>>();
+  const map = new Map<unknown, TreeNode<T, C>>();
   const roots: TreeNode<T, C>[] = [];
 
   for (const item of list) {
@@ -82,15 +82,15 @@ interface FindOptions<C extends string = 'children'> {
  * @template T - Node type.
  * @template C - Children property key.
  * @param {TreeNode<T, C>[]} tree - Tree to search.
- * @param {keyof T} field - Field name to match.
- * @param {*} value - Value to search for.
- * @param {FindOptions<C>} [options] - Optional childrenKey override.
- * @returns {TreeNode<T, C> | null} Matching node or null if not found.
+ * @param field - Field name to match.
+ * @param value - Value to search for.
+ * @param options - Optional childrenKey override.
+ * @returns Matching node or null if not found.
  */
-export function find<T extends Record<string, any>, C extends string = 'children'>(
+export function find<T extends Record<string, unknown>, C extends string = 'children'>(
   tree: TreeNode<T, C>[],
   field: keyof T,
-  value: any,
+  value: unknown,
   options: FindOptions<C> = {},
 ): TreeNode<T, C> | null {
   const childrenKey = options.childrenKey ?? ('children' as C);
@@ -113,15 +113,15 @@ export function find<T extends Record<string, any>, C extends string = 'children
  * @template T - Node type.
  * @template C - Children property key.
  * @param {TreeNode<T, C>[]} tree - Tree to search.
- * @param {keyof T} field - Field name to match.
- * @param {*} value - Value to search for.
- * @param {FindOptions<C>} [options] - Optional childrenKey override.
- * @returns {TreeNode<T, C>[] | null} Array of nodes from root to found node, or null.
+ * @param field - Field name to match.
+ * @param value - Value to search for.
+ * @param options - Optional childrenKey override.
+ * @returns Array of nodes from root to found node, or null.
  */
-export function findAncestors<T extends Record<string, any>, C extends string = 'children'>(
+export function findAncestors<T extends Record<string, unknown>, C extends string = 'children'>(
   tree: TreeNode<T, C>[],
   field: keyof T,
-  value: any,
+  value: unknown,
   options: FindOptions<C> = {},
 ): TreeNode<T, C>[] | null {
   const childrenKey = options.childrenKey ?? ('children' as C);
@@ -150,15 +150,15 @@ export function findAncestors<T extends Record<string, any>, C extends string = 
  * @template T - Node type.
  * @template C - Children property key.
  * @param {TreeNode<T, C>[]} tree - Tree to check.
- * @param {keyof T} field - Field name to match.
- * @param {*} value - Value to search for.
- * @param {FindOptions<C>} [options] - Optional childrenKey override.
- * @returns {boolean} True if such node exists, false otherwise.
+ * @param field - Field name to match.
+ * @param value - Value to search for.
+ * @param options - Optional childrenKey override.
+ * @returns True if such node exists, false otherwise.
  */
-export function has<T extends Record<string, any>, C extends string = 'children'>(
+export function has<T extends Record<string, unknown>, C extends string = 'children'>(
   tree: TreeNode<T, C>[],
   field: keyof T,
-  value: any,
+  value: unknown,
   options: FindOptions<C> = {},
 ): boolean {
   const childrenKey = options.childrenKey ?? ('children' as C);
@@ -194,7 +194,7 @@ interface FindByPathOptions<C extends string = 'children'> extends FindOptions<C
  * @param {FindByPathOptions<C>} [options] - Optional childrenKey and separator overrides.
  * @returns {TreeNode<T, C> | null} Node at the end of the path, or null if not found.
  */
-export function findByPath<T extends Record<string, any>, C extends string = 'children'>(
+export function findByPath<T extends Record<string, unknown>, C extends string = 'children'>(
   tree: TreeNode<T, C>[],
   path: string,
   field: keyof T,
@@ -203,17 +203,16 @@ export function findByPath<T extends Record<string, any>, C extends string = 'ch
   const { childrenKey = 'children' as C, separator = '.' } = options;
   const segments = path.split(separator);
   let currentLevel = tree;
+  let lastFound: TreeNode<T, C> | null = null;
 
   for (const segment of segments) {
-    const nextNode = currentLevel.find((node) => node[field] === segment);
+    const nextNode = currentLevel.find((node) => (node[field] as unknown) === segment);
 
     if (!nextNode) return null;
+    lastFound = nextNode;
     if (!hasEntries(nextNode[childrenKey])) return nextNode;
     currentLevel = nextNode[childrenKey] as TreeNode<T, C>[];
   }
 
-  // The last node found in the loop is the target node
-  return currentLevel.length === 0
-    ? null
-    : currentLevel.find((node) => node[field] === segments[segments.length - 1]) ?? null;
+  return lastFound;
 }

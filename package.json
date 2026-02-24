@@ -2,6 +2,9 @@
   "name": "@spiffdog/spiffy-tools",
   "version": "0.3.2",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -19,6 +22,14 @@
       "import": "./dist/date/index.es.js",
       "require": "./dist/date/index.cjs.js"
     },
+    "./number": {
+      "import": "./dist/number/index.es.js",
+      "require": "./dist/number/index.cjs.js"
+    },
+    "./object": {
+      "import": "./dist/object/index.es.js",
+      "require": "./dist/object/index.cjs.js"
+    },
     "./process": {
       "import": "./dist/process/index.es.js",
       "require": "./dist/process/index.cjs.js"
@@ -26,6 +37,10 @@
     "./string": {
       "import": "./dist/string/index.es.js",
       "require": "./dist/string/index.cjs.js"
+    },
+    "./tree": {
+      "import": "./dist/tree/index.es.js",
+      "require": "./dist/tree/index.cjs.js"
     }
   },
   "files": [
@@ -36,26 +51,31 @@
   },
   "scripts": {
     "build": "tsc --p ./tsconfig-build.json && vite build",
-    "bump-major": "npm version premajor",
-    "bump-minor": "npm version preminor",
-    "bump-patch": "npm version prepatch",
-    "bump-release": "npm version prerelease",
-    "format": "prettier --write --parser typescript '**/*.{ts,tsx}'",
-    "lint": "eslint . --ext .ts,.tsx --ignore-path .gitignore --fix",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch"
+  },
+  "overrides": {
+    "ajv": "^8.18.0",
+    "minimatch": ">=10.2.1"
   },
   "peerDependencies": {
     "@js-temporal/polyfill": "^0.5.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@js-temporal/polyfill": "^0.5.1",
     "@testing-library/jest-dom": "^6.6.3",
+    "@vitest/ui": "^3.2.4",
     "glob": "^11.0.3",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
+    "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"
   }

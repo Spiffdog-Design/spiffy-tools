@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { contains, padEnd, padStart, isNotNullOrEmpty, isNullOrEmpty } from '../string';
+import { describe, expect, it } from 'vitest';
+import { contains, isNotNullOrEmpty, isNullOrEmpty, padEnd, padStart } from '../string';
 
 describe('string tests', () => {
   describe('contains', () => {

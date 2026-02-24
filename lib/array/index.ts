@@ -1,75 +1,72 @@
 /**
  * Flattens an array and removes duplicate elements.
  *
- * @param {any[] | any | null | undefined} arr - The array to flatten.
- * @returns {any[]} A new array that is flattened and contains unique elements.
+ * @param arr - The array to flatten.
+ * @returns A new array that is flattened and contains unique elements.
  */
-export function flattenArray(arr: any[] | any | null | undefined): any[] {
+export function flattenArray(arr: unknown[] | unknown | null | undefined): unknown[] {
   if (!Array.isArray(arr)) {
     return arr != null ? [arr] : [];
   }
-  return Array.from(new Set(arr.flat(Infinity)));
+  return Array.from(new Set(arr.flat(Number.POSITIVE_INFINITY)));
 }
 
 /**
  * Recursively collects all keys from an object, including nested objects.
  *
- * @param {any} obj - The object to extract keys from.
- * @returns {any[]} An array of keys.
+ * @param obj - The object to extract keys from.
+ * @returns An array of keys.
  */
-export function flattenKeys(obj: any): any[] {
+export function flattenKeys(obj: unknown): string[] {
   if (obj == null || typeof obj !== 'object') {
     return [];
   }
-  return Object.keys(obj).reduce<any[]>((acc, key) => {
-    const val = obj[key];
-    if (typeof val === 'object' && val !== null) {
-      acc = acc.concat(flattenKeys(val));
-    }
-    acc.push(key);
-    return acc;
+  const record = obj as Record<string, unknown>;
+  return Object.keys(record).reduce<string[]>((acc, key) => {
+    const val = record[key];
+    const next = typeof val === 'object' && val !== null ? acc.concat(flattenKeys(val)) : acc;
+    next.push(key);
+    return next;
   }, []);
 }
 
 /**
  * Recursively collects all values from an object, including nested objects.
  *
- * @param {any | null | undefined} obj - The object to extract values from.
- * @returns {any[]} An array of values.
+ * @param obj - The object to extract values from.
+ * @returns An array of values.
  */
-export function flattenValues(obj: any | null | undefined): any[] {
+export function flattenValues(obj: unknown): unknown[] {
   if (obj == null || typeof obj !== 'object') {
     return [];
   }
-  return Object.keys(obj).reduce<any[]>((acc, key) => {
-    const val = obj[key];
-    if (typeof val === 'object' && val !== null) {
-      acc = acc.concat(flattenValues(val));
-    } else {
-      acc.push(val);
-    }
-    return acc;
+  const record = obj as Record<string, unknown>;
+  return Object.keys(record).reduce<unknown[]>((acc, key) => {
+    const val = record[key];
+    const next =
+      typeof val === 'object' && val !== null ? acc.concat(flattenValues(val)) : acc.concat([val]);
+    return next;
   }, []);
 }
 
 /**
  * Checks if an array is not null, is an array, and has entries.
  *
- * @param {any[] | any | null | undefined} arr - The array to check.
- * @returns {boolean} True if the array has entries, false otherwise.
+ * @param arr - The array to check.
+ * @returns True if the array has entries, false otherwise.
  */
-export function hasEntries(arr: any[] | any | null | undefined): boolean {
+export function hasEntries(arr: unknown[] | unknown | null | undefined): boolean {
   return arr != null && Array.isArray(arr) && arr.length > 0;
 }
 
 /**
  * Sorts a copy of an array of objects based on a specified key without mutating the original array.
  *
- * @param {Array<Record<string, any>>} arr - The array of objects to sort.
- * @param {string} [key='default'] - The key to sort the objects by.
- * @returns {Array<Record<string, any>>} - A new sorted array.
+ * @param arr - The array of objects to sort.
+ * @param key - The key to sort the objects by.
+ * @returns A new sorted array.
  */
-export function sort<T extends Record<string, any>>(arr: T[], key: keyof T): T[] {
+export function sort<T extends Record<string, unknown>>(arr: T[], key: keyof T): T[] {
   // Create a shallow copy of the array to avoid mutating the original array
   const arrCopy = [...(arr ?? [])];
 
@@ -104,11 +101,11 @@ export const sorter =
     const bValue = b[sortBy];
 
     // Attempt to parse both values as numbers
-    const aNum = parseFloat(aValue as unknown as string);
-    const bNum = parseFloat(bValue as unknown as string);
+    const aNum = Number.parseFloat(aValue as unknown as string);
+    const bNum = Number.parseFloat(bValue as unknown as string);
 
     // Check if both values are valid numbers
-    if (!isNaN(aNum) && !isNaN(bNum)) {
+    if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
       if (aNum < bNum) return -1;
       if (aNum > bNum) return 1;
       return 0;

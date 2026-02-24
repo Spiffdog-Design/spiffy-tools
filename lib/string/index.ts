@@ -13,7 +13,7 @@ export function contains(value: string | null, search: string): boolean {
 
 /**
  * Pads the end of a string with a specified pad string until the target length is reached.
- * @param {any} value - The value to be padded, which will be converted to a string.
+ * @param value - The value to be padded, which will be converted to a string.
  * @param {number} targetLength - The length of the resulting string once the current string has been padded.
  * @param {string} padString - The string to pad the current string with.
  * @returns {string} The padded string.
@@ -27,7 +27,7 @@ export function padEnd(value: string, targetLength: number, padString: string): 
 
 /**
  * Pads the start of a string with a specified pad string until the target length is reached.
- * @param {any} value - The value to be padded, which will be converted to a string.
+ * @param value - The value to be padded, which will be converted to a string.
  * @param {number} targetLength - The length of the resulting string once the current string has been padded.
  * @param {string} padString - The string to pad the current string with.
  * @returns {string} The padded string.
@@ -41,25 +41,25 @@ export function padStart(value: string, targetLength: number, padString: string)
 
 /**
  * Checks if a value is not null or empty.
- * @param {any} value - The value to be checked.
- * @returns {boolean} True if the value is not null or empty, false otherwise.
+ * @param value - The value to be checked.
+ * @returns True if the value is not null or empty, false otherwise.
  * @example
  * isNotNullOrEmpty('hello'); // true
  * isNotNullOrEmpty(''); // false
  */
-export function isNotNullOrEmpty(value: any): boolean {
+export function isNotNullOrEmpty(value: unknown): boolean {
   return !isNullOrEmpty(value);
 }
 
 /**
  * Checks if a value is null or empty.
- * @param {any} value - The value to be checked.
- * @returns {boolean} True if the value is null or empty, false otherwise.
+ * @param value - The value to be checked.
+ * @returns True if the value is null or empty, false otherwise.
  * @example
  * isNullOrEmpty(null); // true
  * isNullOrEmpty(''); // true
  * isNullOrEmpty('hello'); // false
  */
-export function isNullOrEmpty(value: any): boolean {
+export function isNullOrEmpty(value: unknown): boolean {
   return value == null || String(value).trim() === '';
 }

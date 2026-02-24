@@ -15,7 +15,7 @@ export function deepFreeze<T>(obj: T): Readonly<T> {
 
   // Freeze properties before freezing self
   for (const name of propNames) {
-    const value = (obj as any)[name];
+    const value = (obj as Record<string, unknown>)[name];
 
     // If value is an object, deep freeze it
     if (value && typeof value === 'object') {
